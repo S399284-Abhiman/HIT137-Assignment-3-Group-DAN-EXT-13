@@ -1,0 +1,17 @@
+GitHub Repository Link:
+[Insert your GitHub repository URL here]
+
+Example: https://github.com/your-username/image-editor-hit137
+
+Instructions:
+1. Create a new public repository on GitHub
+2. Add all your group members as collaborators
+3. Push all the code files to the repository
+4. Replace this text with your actual repository URL
+5. Submit this file along with your code files
+
+Make sure to:
+- Keep the repository PUBLIC (not private)
+- Make regular commits showing teamwork
+- Use clear commit messages
+- Add a proper README.md (already provided)
