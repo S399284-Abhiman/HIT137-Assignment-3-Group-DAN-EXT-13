@@ -103,6 +103,11 @@ class ImageProcessor:
         new_size = (int(width * scale_x), int(height * scale_y))
         self._current_image = cv2.resize(self._current_image, new_size)
 
+    # Undo Support
+    def undo(self):
+        """Revert to the previous image state."""
+        if self._history:
+            self._current_image = self._history.pop()
 
 
 
