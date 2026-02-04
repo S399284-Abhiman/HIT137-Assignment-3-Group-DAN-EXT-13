@@ -366,75 +366,6 @@ All code is thoroughly documented with:
 
 ---
 
-## 📊 Assessment Criteria Coverage
-
-### ✅ GitHub Usage
-- Repository created with all team members added
-- Consistent commits throughout development
-- Clear commit messages describing changes
-
-### ✅ Tkinter GUI Design
-- Well-structured, user-friendly interface
-- Clear menu bar with File, Edit, View, Help menus
-- Responsive image display area with scrollbars
-- Comprehensive control panel with all filter options
-- Informative status bar showing image details
-- Keyboard shortcuts for efficiency
-
-### ✅ OOP Concepts
-- **3+ well-designed classes**: Image, FilterManager, ImageEditorApp, plus 8 filter classes
-- **Encapsulation**: Private attributes with property decorators
-- **Constructors**: Proper initialization in all classes
-- **Methods**: Instance, class, and static methods
-- **Class Interaction**: Classes work together seamlessly
-
-### ✅ OpenCV Image Processing
-- All 8 required filters implemented correctly:
-  1. Grayscale ✓
-  2. Blur ✓
-  3. Edge Detection ✓
-  4. Brightness ✓
-  5. Contrast ✓
-  6. Rotation ✓
-  7. Flip ✓
-  8. Resize ✓
-
-### ✅ Code Quality & Structure
-- Code split into multiple logical files (models, processors, managers, gui)
-- Clean, readable code with consistent style
-- Comprehensive documentation throughout
-- Proper error handling
-
-### ✅ Functions, Loops, Comments & Classes
-- Functions used effectively for code organization
-- Loops used where appropriate (image processing)
-- Extensive comments and docstrings
-- Clear class structure with proper OOP design
-
----
-
-## 🎯 OOP Concept Mapping
-
-| Concept | Location | Description |
-|---------|----------|-------------|
-| **Classes** | All modules | Image, FilterProcessor, FilterManager, ImageEditorApp |
-| **Objects** | Throughout | Instances of classes created and used |
-| **Constructors** | `__init__` methods | Initialize all class instances |
-| **Instance Attributes** | All classes | `self._image`, `self._width`, etc. |
-| **Class Attributes** | Image, FilterManager | `SUPPORTED_FORMATS`, `filter_count` |
-| **Static Methods** | image_processor.py | `@staticmethod validate_image()` |
-| **Class Methods** | filter_manager.py | `@classmethod get_filter_statistics()` |
-| **Encapsulation** | models/image.py | Private attributes with `_` prefix |
-| **Property Decorators** | models/image.py | `@property` for getters/setters |
-| **Inheritance** | processors/ | FilterProcessor extends ImageProcessor |
-| **Multiple Inheritance** | filter_manager.py | FilterManager extends two classes |
-| **Polymorphism** | All filters | Different `apply()` implementations |
-| **Method Overriding** | All filter classes | Override parent `apply()` method |
-| **Magic Methods** | models/image.py | `__str__`, `__repr__`, `__eq__`, `__len__` |
-| **Super()** | All child classes | Call parent constructors |
-| **Abstract Methods** | image_processor.py | `@abstractmethod` in ImageProcessor |
-
----
 
 ## 🔧 Technical Details
 
@@ -455,11 +386,6 @@ All code is thoroughly documented with:
 
 ---
 
-## 📝 License
-
-This project is created for educational purposes as part of HIT137 Assignment 3.
-
----
 
 ## 🙏 Acknowledgments
 
@@ -471,3 +397,4 @@ This project is created for educational purposes as part of HIT137 Assignment 3.
 
 **Last Updated**: 4th February 2026  
 **Version**: 1.0
+
