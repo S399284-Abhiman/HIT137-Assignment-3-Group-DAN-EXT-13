@@ -22,5 +22,4 @@ An interactive OpenCV-based image processing tool that allows real-time image ma
 
 Clone the repository:
 ```bash
-git clone https://github.com/sjreading/your-repo.git
-cd your-repo
+image processing/main code
