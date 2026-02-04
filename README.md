@@ -185,7 +185,7 @@ image-editor/
 
 1. **Clone the repository**
    ```bash
-   git clone <your-github-repo-url>
+   git clone https://github.com/S399284-Abhiman/HIT137-Assignment-3-Group-DAN-EXT-13.git
    cd image-editor
    ```
 
