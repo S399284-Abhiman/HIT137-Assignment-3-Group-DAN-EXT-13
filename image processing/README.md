@@ -1,1 +1,14 @@
+# OpenCV GUI Image Processor
+
+An interactive OpenCV-based image processing tool that allows real-time image manipulation using GUI sliders (trackbars). Adjust parameters live and save the processed result to a file.
+
+## Features
+
+- Resize with optional aspect-ratio locking
+- Brightness and contrast adjustment
+- Rotation and flipping
+- Gaussian blur
+- Grayscale conversion
+- Canny edge detection with adjustable thresholds
+- Optional fixed-size preview (center pad/crop)
 
