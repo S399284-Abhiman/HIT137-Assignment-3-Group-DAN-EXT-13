@@ -22,4 +22,4 @@ An interactive OpenCV-based image processing tool that allows real-time image ma
 
 Clone the repository:
 ```bash
-image processing/main code
+https://github.com/S399284-Abhiman/HIT137-Assignment-3-Group-DAN-EXT-13.git
