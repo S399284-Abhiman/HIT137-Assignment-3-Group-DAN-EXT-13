@@ -12,3 +12,15 @@ An interactive OpenCV-based image processing tool that allows real-time image ma
 - Canny edge detection with adjustable thresholds
 - Optional fixed-size preview (center pad/crop)
 
+## Requirements
+
+- Python 3.8 or higher
+- OpenCV
+- NumPy
+
+## Installation
+
+Clone the repository:
+```bash
+git clone https://github.com/your-username/your-repo.git
+cd your-repo
