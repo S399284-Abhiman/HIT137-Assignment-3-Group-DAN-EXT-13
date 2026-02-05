@@ -51,6 +51,7 @@ class ImageEditorApp:
         self._filter_manager = FilterManager()
         self._display_image: Optional[ImageTk.PhotoImage] = None
         self._zoom_level = 1.0
+        self._original_for_sliders: Optional[np.ndarray] = None  # Store original for slider adjustments
         
         # Configure the main window
         self._setup_window()
@@ -72,8 +73,11 @@ class ImageEditorApp:
         Demonstrates encapsulation by making this method private.
         """
         self.root.title("Image Editor - HIT137 Assignment 3")
-        self.root.geometry("1200x800")
-        self.root.minsize(800, 600)
+        self.root.geometry("1400x900")
+        self.root.minsize(1000, 700)
+        
+        # Modern color scheme
+        self.root.configure(bg='#f5f5f5')
         
         # Configure window icon (if available)
         try:
@@ -131,44 +135,76 @@ class ImageEditorApp:
     
     def _create_toolbar(self) -> None:
         """
-        Create toolbar with quick access buttons.
+        Create modern flat toolbar with quick access buttons.
         
         Demonstrates Frame widget and button creation.
         """
-        toolbar = tk.Frame(self.root, relief=tk.RAISED, borderwidth=2)
+        toolbar = tk.Frame(self.root, bg='#2c3e50', height=50)
         toolbar.pack(side=tk.TOP, fill=tk.X)
+        toolbar.pack_propagate(False)
         
-        # Create toolbar buttons
+        # Create modern flat toolbar buttons
         buttons = [
-            ("Open", self._open_image),
-            ("Save", self._save_image),
-            ("Undo", self._undo),
-            ("Redo", self._redo),
+            ("📂 Open", self._open_image, '#3498db'),
+            ("💾 Save", self._save_image, '#2ecc71'),
+            ("↶ Undo", self._undo, '#95a5a6'),
+            ("↷ Redo", self._redo, '#95a5a6'),
         ]
         
-        for text, command in buttons:
-            btn = tk.Button(toolbar, text=text, command=command, 
-                          padx=10, pady=5)
-            btn.pack(side=tk.LEFT, padx=2, pady=2)
+        for text, command, color in buttons:
+            btn = tk.Button(toolbar, text=text, command=command,
+                          bg=color, fg='white', 
+                          font=('Segoe UI', 10),
+                          relief=tk.FLAT,
+                          padx=20, pady=10,
+                          cursor='hand2',
+                          activebackground=self._darken_color(color),
+                          activeforeground='white',
+                          borderwidth=0)
+            btn.pack(side=tk.LEFT, padx=2, pady=5)
+            
+            # Add hover effect
+            btn.bind('<Enter>', lambda e, b=btn, c=color: b.config(bg=self._darken_color(c)))
+            btn.bind('<Leave>', lambda e, b=btn, c=color: b.config(bg=c))
+    
+    def _darken_color(self, hex_color: str) -> str:
+        """
+        Darken a hex color for hover effect.
+        
+        Args:
+            hex_color (str): Hex color code
+            
+        Returns:
+            str: Darkened hex color
+        """
+        # Simple darkening by reducing RGB values
+        rgb = [int(hex_color[i:i+2], 16) for i in (1, 3, 5)]
+        darkened = [max(0, int(c * 0.8)) for c in rgb]
+        return f"#{darkened[0]:02x}{darkened[1]:02x}{darkened[2]:02x}"
     
     def _create_main_area(self) -> None:
         """
-        Create the main image display area.
+        Create the main image display area with modern styling.
         
         Demonstrates Canvas widget for image display.
         """
         # Create frame for canvas with scrollbars
-        self.canvas_frame = tk.Frame(self.root)
-        self.canvas_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.canvas_frame = tk.Frame(self.root, bg='#ecf0f1')
+        self.canvas_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=0, pady=0)
         
-        # Create canvas with scrollbars
-        self.canvas = tk.Canvas(self.canvas_frame, bg="gray")
+        # Create canvas with modern styling
+        self.canvas = tk.Canvas(self.canvas_frame, 
+                               bg='#ecf0f1',
+                               highlightthickness=0,
+                               borderwidth=0)
         
-        # Scrollbars
+        # Minimal scrollbars
         v_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.VERTICAL,
-                                  command=self.canvas.yview)
+                                  command=self.canvas.yview,
+                                  width=10)
         h_scrollbar = tk.Scrollbar(self.canvas_frame, orient=tk.HORIZONTAL,
-                                  command=self.canvas.xview)
+                                  command=self.canvas.xview,
+                                  width=10)
         
         self.canvas.configure(yscrollcommand=v_scrollbar.set,
                             xscrollcommand=h_scrollbar.set)
@@ -180,112 +216,277 @@ class ImageEditorApp:
     
     def _create_control_panel(self) -> None:
         """
-        Create the right-side control panel with filter buttons and sliders.
+        Create modern minimalistic control panel with flat design.
         
-        Demonstrates various Tkinter widgets: Frame, LabelFrame, Button, Scale.
+        Demonstrates various Tkinter widgets with modern styling.
         """
-        # Main control panel frame
-        control_panel = tk.Frame(self.root, width=250, relief=tk.RAISED, 
-                               borderwidth=2)
-        control_panel.pack(side=tk.RIGHT, fill=tk.Y)
-        control_panel.pack_propagate(False)
+        # Modern control panel with no gap
+        control_panel_container = tk.Frame(self.root, width=280, bg='#ffffff',
+                                          relief=tk.FLAT, borderwidth=0)
+        control_panel_container.pack(side=tk.RIGHT, fill=tk.Y, padx=0, pady=0)
+        control_panel_container.pack_propagate(False)
         
-        # Title label
-        title = tk.Label(control_panel, text="Image Filters", 
-                        font=("Arial", 14, "bold"))
-        title.pack(pady=10)
+        # Create canvas for scrolling
+        canvas = tk.Canvas(control_panel_container, width=280, 
+                          bg='#ffffff', highlightthickness=0, borderwidth=0)
+        
+        # Minimal scrollbar
+        scrollbar = tk.Scrollbar(control_panel_container, orient=tk.VERTICAL,
+                                command=canvas.yview, width=8, 
+                                bg='#ffffff', troughcolor='#f5f5f5')
+        
+        # Create frame inside canvas
+        control_panel = tk.Frame(canvas, bg='#ffffff')
+        
+        # Configure canvas
+        canvas.create_window((0, 0), window=control_panel, anchor=tk.NW)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack scrollbar and canvas
+        scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
+        # Update scroll region
+        def configure_scroll_region(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        control_panel.bind("<Configure>", configure_scroll_region)
+        
+        # Mouse wheel scrolling
+        def on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        canvas.bind_all("<MouseWheel>", on_mousewheel)
+        
+        # Modern header
+        header = tk.Frame(control_panel, bg='#34495e', height=60)
+        header.pack(fill=tk.X, pady=0)
+        header.pack_propagate(False)
+        
+        title = tk.Label(header, text="FILTERS", 
+                        font=('Segoe UI', 14, 'bold'),
+                        bg='#34495e', fg='white')
+        title.pack(pady=20)
+        
+        # Separator line
+        tk.Frame(control_panel, height=1, bg='#ecf0f1').pack(fill=tk.X)
         
         # Basic Filters Section
-        basic_frame = tk.LabelFrame(control_panel, text="Basic Filters", 
-                                   padx=10, pady=10)
-        basic_frame.pack(fill=tk.X, padx=10, pady=5)
+        self._create_section_header(control_panel, "BASIC FILTERS")
         
-        tk.Button(basic_frame, text="Grayscale", 
-                 command=lambda: self._apply_filter("grayscale"),
-                 width=20).pack(pady=2)
-        tk.Button(basic_frame, text="Edge Detection", 
-                 command=lambda: self._apply_filter("edge"),
-                 width=20).pack(pady=2)
+        basic_frame = tk.Frame(control_panel, bg='#ffffff')
+        basic_frame.pack(fill=tk.X, padx=15, pady=5)
         
-        # Blur Section with Slider
-        blur_frame = tk.LabelFrame(control_panel, text="Blur Effect", 
-                                  padx=10, pady=10)
-        blur_frame.pack(fill=tk.X, padx=10, pady=5)
+        self._create_modern_button(basic_frame, "Grayscale", 
+                                   lambda: self._apply_filter_permanent("grayscale"),
+                                   '#7f8c8d')
+        self._create_modern_button(basic_frame, "Edge Detection", 
+                                   lambda: self._apply_filter_permanent("edge"),
+                                   '#7f8c8d')
         
-        tk.Label(blur_frame, text="Intensity:").pack()
-        self.blur_slider = tk.Scale(blur_frame, from_=1, to=25, 
-                                   orient=tk.HORIZONTAL, length=200)
-        self.blur_slider.set(5)
-        self.blur_slider.pack()
-        tk.Button(blur_frame, text="Apply Blur", 
-                 command=self._apply_blur, width=20).pack(pady=5)
+        # Blur Section
+        self._create_section_header(control_panel, "BLUR")
         
-        # Brightness Section with Slider
-        brightness_frame = tk.LabelFrame(control_panel, text="Brightness", 
-                                        padx=10, pady=10)
-        brightness_frame.pack(fill=tk.X, padx=10, pady=5)
+        blur_frame = tk.Frame(control_panel, bg='#ffffff')
+        blur_frame.pack(fill=tk.X, padx=15, pady=5)
         
-        tk.Label(brightness_frame, text="Adjustment:").pack()
-        self.brightness_slider = tk.Scale(brightness_frame, from_=-100, to=100, 
-                                         orient=tk.HORIZONTAL, length=200)
+        self.blur_value_label = tk.Label(blur_frame, text="1", 
+                                         font=('Segoe UI', 11),
+                                         bg='#ffffff', fg='#34495e')
+        self.blur_value_label.pack(pady=(0, 5))
+        
+        self.blur_slider = tk.Scale(blur_frame, from_=1, to=25,
+                                   orient=tk.HORIZONTAL, length=250,
+                                   command=self._on_blur_change,
+                                   showvalue=0,
+                                   bg='#ffffff', 
+                                   troughcolor='#ecf0f1',
+                                   highlightthickness=0,
+                                   sliderrelief=tk.FLAT,
+                                   activebackground='#3498db',
+                                   borderwidth=0)
+        self.blur_slider.set(1)
+        self.blur_slider.pack(pady=5)
+        
+        self._create_reset_button(blur_frame, self.blur_slider, 1)
+        
+        # Brightness Section
+        self._create_section_header(control_panel, "BRIGHTNESS")
+        
+        brightness_frame = tk.Frame(control_panel, bg='#ffffff')
+        brightness_frame.pack(fill=tk.X, padx=15, pady=5)
+        
+        self.brightness_value_label = tk.Label(brightness_frame, text="0",
+                                               font=('Segoe UI', 11),
+                                               bg='#ffffff', fg='#34495e')
+        self.brightness_value_label.pack(pady=(0, 5))
+        
+        self.brightness_slider = tk.Scale(brightness_frame, from_=-100, to=100,
+                                         orient=tk.HORIZONTAL, length=250,
+                                         command=self._on_brightness_change,
+                                         showvalue=0,
+                                         bg='#ffffff',
+                                         troughcolor='#ecf0f1',
+                                         highlightthickness=0,
+                                         sliderrelief=tk.FLAT,
+                                         activebackground='#f39c12',
+                                         borderwidth=0)
         self.brightness_slider.set(0)
-        self.brightness_slider.pack()
-        tk.Button(brightness_frame, text="Apply Brightness", 
-                 command=self._apply_brightness, width=20).pack(pady=5)
+        self.brightness_slider.pack(pady=5)
         
-        # Contrast Section with Slider
-        contrast_frame = tk.LabelFrame(control_panel, text="Contrast", 
-                                      padx=10, pady=10)
-        contrast_frame.pack(fill=tk.X, padx=10, pady=5)
+        self._create_reset_button(brightness_frame, self.brightness_slider, 0)
         
-        tk.Label(contrast_frame, text="Adjustment:").pack()
-        self.contrast_slider = tk.Scale(contrast_frame, from_=0.5, to=3.0, 
-                                       resolution=0.1, orient=tk.HORIZONTAL, 
-                                       length=200)
+        # Contrast Section
+        self._create_section_header(control_panel, "CONTRAST")
+        
+        contrast_frame = tk.Frame(control_panel, bg='#ffffff')
+        contrast_frame.pack(fill=tk.X, padx=15, pady=5)
+        
+        self.contrast_value_label = tk.Label(contrast_frame, text="1.0",
+                                             font=('Segoe UI', 11),
+                                             bg='#ffffff', fg='#34495e')
+        self.contrast_value_label.pack(pady=(0, 5))
+        
+        self.contrast_slider = tk.Scale(contrast_frame, from_=0.5, to=3.0,
+                                       resolution=0.1, orient=tk.HORIZONTAL,
+                                       length=250,
+                                       command=self._on_contrast_change,
+                                       showvalue=0,
+                                       bg='#ffffff',
+                                       troughcolor='#ecf0f1',
+                                       highlightthickness=0,
+                                       sliderrelief=tk.FLAT,
+                                       activebackground='#9b59b6',
+                                       borderwidth=0)
         self.contrast_slider.set(1.0)
-        self.contrast_slider.pack()
-        tk.Button(contrast_frame, text="Apply Contrast", 
-                 command=self._apply_contrast, width=20).pack(pady=5)
+        self.contrast_slider.pack(pady=5)
+        
+        self._create_reset_button(contrast_frame, self.contrast_slider, 1.0)
         
         # Transform Section
-        transform_frame = tk.LabelFrame(control_panel, text="Transformations", 
-                                       padx=10, pady=10)
-        transform_frame.pack(fill=tk.X, padx=10, pady=5)
+        self._create_section_header(control_panel, "TRANSFORM")
         
-        tk.Button(transform_frame, text="Rotate 90°", 
-                 command=lambda: self._apply_filter("rotate", angle=90),
-                 width=20).pack(pady=2)
-        tk.Button(transform_frame, text="Rotate 180°", 
-                 command=lambda: self._apply_filter("rotate", angle=180),
-                 width=20).pack(pady=2)
-        tk.Button(transform_frame, text="Flip Horizontal", 
-                 command=lambda: self._apply_filter("flip", direction="horizontal"),
-                 width=20).pack(pady=2)
-        tk.Button(transform_frame, text="Flip Vertical", 
-                 command=lambda: self._apply_filter("flip", direction="vertical"),
-                 width=20).pack(pady=2)
+        transform_frame = tk.Frame(control_panel, bg='#ffffff')
+        transform_frame.pack(fill=tk.X, padx=15, pady=5)
+        
+        self._create_modern_button(transform_frame, "↻ Rotate 90°",
+                                   lambda: self._apply_filter_permanent("rotate", angle=90),
+                                   '#16a085')
+        self._create_modern_button(transform_frame, "⟲ Rotate 180°",
+                                   lambda: self._apply_filter_permanent("rotate", angle=180),
+                                   '#16a085')
+        self._create_modern_button(transform_frame, "↺ Rotate 270°",
+                                   lambda: self._apply_filter_permanent("rotate", angle=270),
+                                   '#16a085')
+        self._create_modern_button(transform_frame, "↔ Flip Horizontal",
+                                   lambda: self._apply_filter_permanent("flip", direction="horizontal"),
+                                   '#16a085')
+        self._create_modern_button(transform_frame, "↕ Flip Vertical",
+                                   lambda: self._apply_filter_permanent("flip", direction="vertical"),
+                                   '#16a085')
         
         # Resize Section
-        resize_frame = tk.LabelFrame(control_panel, text="Resize", 
-                                    padx=10, pady=10)
-        resize_frame.pack(fill=tk.X, padx=10, pady=5)
+        self._create_section_header(control_panel, "RESIZE")
         
-        tk.Label(resize_frame, text="Scale (%):").pack()
-        self.resize_slider = tk.Scale(resize_frame, from_=25, to=200, 
-                                     orient=tk.HORIZONTAL, length=200)
+        resize_frame = tk.Frame(control_panel, bg='#ffffff')
+        resize_frame.pack(fill=tk.X, padx=15, pady=5)
+        
+        self.resize_value_label = tk.Label(resize_frame, text="100%",
+                                           font=('Segoe UI', 11),
+                                           bg='#ffffff', fg='#34495e')
+        self.resize_value_label.pack(pady=(0, 5))
+        
+        self.resize_slider = tk.Scale(resize_frame, from_=25, to=200,
+                                     orient=tk.HORIZONTAL, length=250,
+                                     command=self._on_resize_change,
+                                     showvalue=0,
+                                     bg='#ffffff',
+                                     troughcolor='#ecf0f1',
+                                     highlightthickness=0,
+                                     sliderrelief=tk.FLAT,
+                                     activebackground='#e74c3c',
+                                     borderwidth=0)
         self.resize_slider.set(100)
-        self.resize_slider.pack()
-        tk.Button(resize_frame, text="Apply Resize", 
-                 command=self._apply_resize, width=20).pack(pady=5)
+        self.resize_slider.pack(pady=5)
+        
+        self._create_reset_button(resize_frame, self.resize_slider, 100)
+        
+        # Apply All Button
+        apply_frame = tk.Frame(control_panel, bg='#ffffff')
+        apply_frame.pack(fill=tk.X, padx=15, pady=20)
+        
+        apply_btn = tk.Button(apply_frame, text="✓ APPLY ALL",
+                             command=self._commit_slider_changes,
+                             bg='#27ae60', fg='white',
+                             font=('Segoe UI', 11, 'bold'),
+                             relief=tk.FLAT,
+                             cursor='hand2',
+                             activebackground='#229954',
+                             activeforeground='white',
+                             height=2,
+                             borderwidth=0)
+        apply_btn.pack(fill=tk.X, pady=5)
+        
+        # Hover effect for apply button
+        apply_btn.bind('<Enter>', lambda e: apply_btn.config(bg='#229954'))
+        apply_btn.bind('<Leave>', lambda e: apply_btn.config(bg='#27ae60'))
+    
+    def _create_section_header(self, parent, text):
+        """Create a modern section header."""
+        frame = tk.Frame(parent, bg='#ffffff')
+        frame.pack(fill=tk.X, padx=15, pady=(15, 5))
+        
+        label = tk.Label(frame, text=text,
+                        font=('Segoe UI', 9, 'bold'),
+                        bg='#ffffff', fg='#7f8c8d')
+        label.pack(anchor=tk.W)
+        
+        # Separator line
+        tk.Frame(frame, height=1, bg='#ecf0f1').pack(fill=tk.X, pady=(5, 0))
+    
+    def _create_modern_button(self, parent, text, command, color):
+        """Create a modern flat button."""
+        btn = tk.Button(parent, text=text,
+                       command=command,
+                       bg=color, fg='white',
+                       font=('Segoe UI', 10),
+                       relief=tk.FLAT,
+                       cursor='hand2',
+                       activebackground=self._darken_color(color),
+                       activeforeground='white',
+                       height=2,
+                       borderwidth=0)
+        btn.pack(fill=tk.X, pady=3)
+        
+        # Hover effect
+        btn.bind('<Enter>', lambda e: btn.config(bg=self._darken_color(color)))
+        btn.bind('<Leave>', lambda e: btn.config(bg=color))
+    
+    def _create_reset_button(self, parent, slider, default_value):
+        """Create a small reset button."""
+        btn = tk.Button(parent, text="Reset",
+                       command=lambda: self._reset_slider(slider, default_value),
+                       bg='#ecf0f1', fg='#34495e',
+                       font=('Segoe UI', 9),
+                       relief=tk.FLAT,
+                       cursor='hand2',
+                       activebackground='#bdc3c7',
+                       activeforeground='#2c3e50',
+                       borderwidth=0)
+        btn.pack(pady=(5, 0))
+        
+        # Hover effect
+        btn.bind('<Enter>', lambda e: btn.config(bg='#bdc3c7'))
+        btn.bind('<Leave>', lambda e: btn.config(bg='#ecf0f1'))
     
     def _create_status_bar(self) -> None:
         """
-        Create status bar at the bottom of the window.
+        Create modern status bar at the bottom of the window.
         
         Demonstrates Label widget for status information.
         """
-        self.status_bar = tk.Label(self.root, text="Ready", 
-                                  bd=1, relief=tk.SUNKEN, anchor=tk.W)
+        self.status_bar = tk.Label(self.root, text="Ready | No image loaded", 
+                                  bg='#34495e', fg='white',
+                                  font=('Segoe UI', 9),
+                                  anchor=tk.W, padx=10, height=2)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
     
     def _bind_shortcuts(self) -> None:
@@ -326,11 +527,27 @@ class ImageEditorApp:
                 self._image = Image(filepath)
                 self._filter_manager.current_image = self._image
                 
-                # Display the image
+                # Store original for slider adjustments
+                self._original_for_sliders = self._image.current_image.copy()
+                
+                # Reset sliders to default
+                self.blur_slider.set(1)
+                self.brightness_slider.set(0)
+                self.contrast_slider.set(1.0)
+                self.resize_slider.set(100)
+                
+                # Display the image first
                 self._display_current_image()
                 
+                # Force window update to get accurate canvas dimensions
+                self.root.update_idletasks()
+                
+                # Small delay to ensure canvas is fully rendered
+                self.root.after(100, self._fit_to_window)
+                
                 # Update status bar
-                self._update_status(f"Opened: {filepath}")
+                filename = filepath.split('/')[-1]
+                self._update_status(f"Opened: {filename}")
                 
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to open image: {str(e)}")
@@ -379,9 +596,9 @@ class ImageEditorApp:
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to save image: {str(e)}")
     
-    def _apply_filter(self, filter_key: str, **kwargs) -> None:
+    def _apply_filter_permanent(self, filter_key: str, **kwargs) -> None:
         """
-        Apply a filter to the current image.
+        Apply a filter permanently (for buttons like grayscale, edge detection, transforms).
         
         Demonstrates class interaction with FilterManager.
         
@@ -397,6 +614,15 @@ class ImageEditorApp:
         success = self._filter_manager.apply_filter(filter_key, **kwargs)
         
         if success:
+            # Update original for sliders with the new permanent change
+            self._original_for_sliders = self._image.current_image.copy()
+            
+            # Reset sliders after permanent change
+            self.blur_slider.set(1)
+            self.brightness_slider.set(0)
+            self.contrast_slider.set(1.0)
+            self.resize_slider.set(100)
+            
             self._display_current_image()
             filter_info = self._filter_manager.get_filter_info(filter_key)
             if filter_info:
@@ -404,28 +630,177 @@ class ImageEditorApp:
         else:
             messagebox.showerror("Error", "Failed to apply filter")
     
+    def _on_blur_change(self, value) -> None:
+        """
+        Real-time blur adjustment as slider moves.
+        
+        Args:
+            value: Slider value (automatically passed by Tkinter)
+        """
+        if self._image is None or self._original_for_sliders is None:
+            return
+        
+        intensity = int(float(value))
+        # Ensure odd number for kernel size
+        if intensity % 2 == 0:
+            intensity += 1
+        
+        # Update label - just the value
+        self.blur_value_label.config(text=f"{int(float(value))}")
+        
+        # Apply filter to original image (not cumulative)
+        try:
+            # Get the filter
+            blur_filter = self._filter_manager.get_filter("blur")
+            
+            # Apply to original
+            filtered = blur_filter.apply(self._original_for_sliders, intensity=intensity)
+            
+            # Update display only (not permanent)
+            self._image.current_image = filtered
+            self._display_current_image()
+            
+        except Exception as e:
+            print(f"Error applying blur: {e}")
+    
+    def _on_brightness_change(self, value) -> None:
+        """
+        Real-time brightness adjustment as slider moves.
+        
+        Args:
+            value: Slider value (automatically passed by Tkinter)
+        """
+        if self._image is None or self._original_for_sliders is None:
+            return
+        
+        brightness_value = int(float(value))
+        
+        # Update label - just the value
+        self.brightness_value_label.config(text=f"{brightness_value}")
+        
+        # Apply filter to original image
+        try:
+            brightness_filter = self._filter_manager.get_filter("brightness")
+            filtered = brightness_filter.apply(self._original_for_sliders, value=brightness_value)
+            
+            # Update display only
+            self._image.current_image = filtered
+            self._display_current_image()
+            
+        except Exception as e:
+            print(f"Error applying brightness: {e}")
+    
+    def _on_contrast_change(self, value) -> None:
+        """
+        Real-time contrast adjustment as slider moves.
+        
+        Args:
+            value: Slider value (automatically passed by Tkinter)
+        """
+        if self._image is None or self._original_for_sliders is None:
+            return
+        
+        contrast_value = float(value)
+        
+        # Update label - just the value
+        self.contrast_value_label.config(text=f"{contrast_value:.1f}")
+        
+        # Apply filter to original image
+        try:
+            contrast_filter = self._filter_manager.get_filter("contrast")
+            filtered = contrast_filter.apply(self._original_for_sliders, value=contrast_value)
+            
+            # Update display only
+            self._image.current_image = filtered
+            self._display_current_image()
+            
+        except Exception as e:
+            print(f"Error applying contrast: {e}")
+    
+    def _on_resize_change(self, value) -> None:
+        """
+        Real-time resize adjustment as slider moves.
+        
+        Args:
+            value: Slider value (automatically passed by Tkinter)
+        """
+        if self._image is None or self._original_for_sliders is None:
+            return
+        
+        scale_percent = int(float(value))
+        scale = scale_percent / 100.0
+        
+        # Update label
+        self.resize_value_label.config(text=f"Scale: {scale_percent}%")
+        
+        # Apply filter to original image
+        try:
+            resize_filter = self._filter_manager.get_filter("resize")
+            filtered = resize_filter.apply(self._original_for_sliders, scale=scale)
+            
+            # Update display only
+            self._image.current_image = filtered
+            self._display_current_image()
+            
+        except Exception as e:
+            print(f"Error applying resize: {e}")
+    
+    def _reset_slider(self, slider, default_value) -> None:
+        """
+        Reset a slider to its default value.
+        
+        Args:
+            slider: The slider widget to reset
+            default_value: The default value to set
+        """
+        if self._image is None:
+            return
+        
+        slider.set(default_value)
+        # The slider's command will automatically trigger and reset the image
+    
+    def _commit_slider_changes(self) -> None:
+        """
+        Make the current slider adjustments permanent.
+        This updates the original so sliders start fresh.
+        """
+        if self._image is None:
+            return
+        
+        # Update the stored original to current state
+        self._original_for_sliders = self._image.current_image.copy()
+        
+        # Reset sliders to default
+        self.blur_slider.set(1)
+        self.brightness_slider.set(0)
+        self.contrast_slider.set(1.0)
+        self.resize_slider.set(100)
+        
+        self._update_status("Adjustments applied permanently")
+        messagebox.showinfo("Success", "All adjustments have been applied!")
+    
     def _apply_blur(self) -> None:
-        """Apply blur filter with slider value."""
+        """Apply blur filter with slider value (legacy - kept for compatibility)."""
         intensity = self.blur_slider.get()
         # Ensure odd number for kernel size
         if intensity % 2 == 0:
             intensity += 1
-        self._apply_filter("blur", intensity=intensity)
+        self._apply_filter_permanent("blur", intensity=intensity)
     
     def _apply_brightness(self) -> None:
-        """Apply brightness adjustment with slider value."""
+        """Apply brightness adjustment with slider value (legacy)."""
         value = self.brightness_slider.get()
-        self._apply_filter("brightness", value=value)
+        self._apply_filter_permanent("brightness", value=value)
     
     def _apply_contrast(self) -> None:
-        """Apply contrast adjustment with slider value."""
+        """Apply contrast adjustment with slider value (legacy)."""
         value = self.contrast_slider.get()
-        self._apply_filter("contrast", value=value)
+        self._apply_filter_permanent("contrast", value=value)
     
     def _apply_resize(self) -> None:
-        """Apply resize with slider value."""
+        """Apply resize with slider value (legacy)."""
         scale = self.resize_slider.get() / 100.0
-        self._apply_filter("resize", scale=scale)
+        self._apply_filter_permanent("resize", scale=scale)
     
     def _undo(self) -> None:
         """
@@ -450,12 +825,22 @@ class ImageEditorApp:
             messagebox.showinfo("Info", "Nothing to redo")
     
     def _reset_to_original(self) -> None:
-        """Reset image to original state."""
+        """Reset image to original state and reset all sliders."""
         if self._image is None:
             messagebox.showwarning("Warning", "No image loaded")
             return
         
         self._image.reset_to_original()
+        
+        # Update original for sliders
+        self._original_for_sliders = self._image.current_image.copy()
+        
+        # Reset all sliders
+        self.blur_slider.set(1)
+        self.brightness_slider.set(0)
+        self.contrast_slider.set(1.0)
+        self.resize_slider.set(100)
+        
         self._display_current_image()
         self._update_status("Reset to original image")
     
